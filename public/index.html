@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusNode Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>NexusNode</h1>
+            <div id="balance">0.0000 𝝅</div>
+        </header>
+
+        <div class="network-stats">
+            <div class="stat-card"><h3>LEFT</h3><p id="legL">0</p></div>
+            <div class="stat-card"><h3>CENTER</h3><p id="legC">0</p></div>
+            <div class="stat-card"><h3>RIGHT</h3><p id="legR">0</p></div>
+        </div>
+
+        <div class="game-status">
+            <h3>Mission: Level <span id="userLevel">1</span></h3>
+            <button class="play-btn" onclick="window.location.href='game.html'">PLAY & EARN</button>
+        </div>
+
+        <div class="referral-section">
+            <p>Invite Link:</p>
+            <input type="text" id="refLink" readonly value="Loading...">
+        </div>
+    </div>
+
+    <script>
+        const Pi = window.Pi;
+        Pi.init({ version: "2.0", sandbox: true });
+
+        async function loginUser() {
+            try {
+                // Kunin ang Pi Username
+                const scopes = ['username', 'payments'];
+                const auth = await Pi.authenticate(scopes, (onPayment) => {});
+                const username = auth.user.username;
+
+                // Kunin ang Referrer sa URL (?ref=name)
+                const urlParams = new URLSearchParams(window.location.search);
+                const referrer = urlParams.get('ref') || 'admin';
+
+                // Tawagan ang Backend para sa Login/Register
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, referrerUsername: referrer })
+                });
+                
+                const data = await res.json();
+
+                // Update UI
+                document.getElementById('balance').innerText = `${data.balance.toFixed(4)} 𝝅`;
+                document.getElementById('legL').innerText = data.points_l;
+                document.getElementById('legC').innerText = data.points_c;
+                document.getElementById('legR').innerText = data.points_r;
+                document.getElementById('userLevel').innerText = data.current_level;
+                document.getElementById('refLink').value = `https://nexusnode.vercel.app/?ref=${username}`;
+
+            } catch (err) { console.error("Login Error:", err); }
+        }
+        loginUser();
+    </script>
+</body>
+</html>
