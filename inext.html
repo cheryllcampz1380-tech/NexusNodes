@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NexusNode Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <style>body { margin: 0; background: #0b0b0b; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }</style>
+</head>
+<body>
+    <script>
+    const config = {
+        type: Phaser.AUTO,
+        width: 360, height: 600,
+        backgroundColor: '#1a1a1a',
+        scene: { preload: preload, create: create }
+    };
+    const game = new Phaser.Game(config);
+
+    function preload() {}
+
+    function create() {
+        this.add.text(50, 50, 'Level 1: Activate Nodes', { fill: '#9013FE', fontSize: '22px', fontWeight: 'bold' });
+        let nodes = [];
+        for(let i=0; i<3; i++) {
+            let node = this.add.circle(80 + (i*100), 300, 35, 0x444444).setInteractive();
+            nodes.push(node);
+            node.on('pointerdown', function() {
+                this.setFillStyle(0x9013FE);
+                checkWin(nodes);
+            });
+        }
+    }
+
+    async function checkWin(nodes) {
+        if (nodes.every(n => n.fillColor === 0x9013FE)) {
+            alert("Level Complete! Returning to Dashboard...");
+            // Optional: Dito pwedeng tumawag ng API para magdagdag ng points
+            window.location.href = 'index.html';
+        }
+    }
+    </script>
+</body>
+</html>
