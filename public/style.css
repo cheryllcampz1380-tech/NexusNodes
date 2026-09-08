@@ -1,0 +1,17 @@
+body {
+    background-color: #0b0b0b;
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    text-align: center;
+}
+#app { padding: 20px; }
+header { border-bottom: 2px solid #9013FE; padding-bottom: 10px; margin-bottom: 20px; }
+h1 { color: #9013FE; margin: 0; }
+.network-stats { display: flex; justify-content: space-between; margin-bottom: 30px; }
+.stat-card { background: #1a1a1a; padding: 10px; border-radius: 8px; width: 30%; border: 1px solid #333; }
+.stat-card h3 { font-size: 10px; color: #888; margin: 0; }
+.stat-card p { font-size: 16px; font-weight: bold; margin: 5px 0; }
+.play-btn { background: #9013FE; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+.referral-section { margin-top: 40px; font-size: 12px; color: #666; }
+input { background: #1a1a1a; border: 1px solid #333; color: #9013FE; padding: 10px; width: 90%; text-align: center; border-radius: 5px; }
