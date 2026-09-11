@@ -12,6 +12,7 @@
         <header>
             <h1>NexusNode</h1>
             <div id="balance">0.0000 𝝅</div>
+            <button id="authBtn" onclick="loginUser()" style="display:none; margin-top:10px; background:#9013FE; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer;">Sign In with Pi</button>
         </header>
 
         <div class="network-stats">
@@ -32,40 +33,58 @@
     </div>
 
     <script>
-        const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: true });
+        async function initAndAuth() {
+            try {
+                await new Promise((resolve) => {
+                    window.Pi.init({ version: "2.0", sandbox: true });
+                    resolve();
+                });
+                await loginUser();
+            } catch (err) {
+                console.error("Initialization Error:", err);
+                document.getElementById('authBtn').style.display = 'inline-block';
+            }
+        }
 
         async function loginUser() {
             try {
-                // Kunin ang Pi Username
-                const scopes = ['username', 'payments'];
-                const auth = await Pi.authenticate(scopes, (onPayment) => {});
+                const scopes = ['username'];
+                const auth = await window.Pi.authenticate(scopes, (onPayment) => {});
+                
+                const accessToken = auth.accessToken;
                 const username = auth.user.username;
 
-                // Kunin ang Referrer sa URL (?ref=name)
                 const urlParams = new URLSearchParams(window.location.search);
                 const referrer = urlParams.get('ref') || 'admin';
 
-                // Tawagan ang Backend para sa Login/Register
                 const res = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, referrerUsername: referrer })
+                    body: JSON.stringify({ 
+                        accessToken: accessToken, 
+                        username: username, 
+                        referrerUsername: referrer 
+                    })
                 });
                 
                 const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Auth failed');
 
-                // Update UI
-                document.getElementById('balance').innerText = `${data.balance.toFixed(4)} 𝝅`;
-                document.getElementById('legL').innerText = data.points_l;
-                document.getElementById('legC').innerText = data.points_c;
-                document.getElementById('legR').innerText = data.points_r;
-                document.getElementById('userLevel').innerText = data.current_level;
+                document.getElementById('balance').innerText = `${(data.balance || 0).toFixed(4)} 𝝅`;
+                document.getElementById('legL').innerText = data.points_l || 0;
+                document.getElementById('legC').innerText = data.points_c || 0;
+                document.getElementById('legR').innerText = data.points_r || 0;
+                document.getElementById('userLevel').innerText = data.current_level || 1;
                 document.getElementById('refLink').value = `https://nexusnode.vercel.app/?ref=${username}`;
+                document.getElementById('authBtn').style.display = 'none';
 
-            } catch (err) { console.error("Login Error:", err); }
+            } catch (err) { 
+                console.error("Login Error:", err);
+                document.getElementById('authBtn').style.display = 'inline-block';
+            }
         }
-        loginUser();
+
+        window.addEventListener('DOMContentLoaded', initAndAuth);
     </script>
 </body>
 </html>
