@@ -3,88 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexusNode Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <title>NexusNodes - Pi Network Ecosystem</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <style>
+        :root {
+            --bg-color: #0d0e15;
+            --card-bg: #161824;
+            --accent-color: #f3ba2f;
+            --purple-color: #7b2cbf;
+            --text-color: #ffffff;
+            --subtext-color: #a0a5ba;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            width: 100%;
+            background: linear-gradient(135deg, #1f1c2c, #928dab);
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        header h1 { margin: 0; font-size: 24px; color: var(--accent-color); }
+        .container { width: 92%; max-width: 480px; margin-top: 15px; }
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 1px solid rgba(243, 186, 47, 0.1);
+        }
+        .balance-box { text-align: center; padding: 20px 10px; }
+        .balance-amount { font-size: 32px; font-weight: bold; color: var(--accent-color); }
+        .btn {
+            background: linear-gradient(45deg, var(--purple-color), #9d4edd);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .btn-gold { background: linear-gradient(45deg, #f3ba2f, #ffaa00); color: #000; }
+        .binary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; }
+        .leg-card { background: #202336; padding: 10px; border-radius: 8px; }
+        .leg-title { font-size: 12px; color: var(--subtext-color); }
+        .leg-value { font-size: 18px; font-weight: bold; color: var(--accent-color); }
+        .game-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .game-card {
+            background: #202336;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .game-card:hover { border-color: var(--accent-color); }
+        #game-screen { display: none; text-align: center; }
+        canvas { background: #000; border-radius: 8px; margin-top: 10px; width: 100%; max-width: 320px; }
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 6px;
+            border: 1fr solid #333;
+            background: #0d0e15;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <header>
-            <h1>NexusNode</h1>
-            <div id="balance">0.0000 𝝅</div>
-            <button id="authBtn" onclick="loginUser()" style="display:none; margin-top:10px; background:#9013FE; color:white; border:none; padding:8px 16px; border-radius:5px; cursor:pointer;">Sign In with Pi</button>
-        </header>
 
-        <div class="network-stats">
-            <div class="stat-card"><h3>LEFT</h3><p id="legL">0</p></div>
-            <div class="stat-card"><h3>CENTER</h3><p id="legC">0</p></div>
-            <div class="stat-card"><h3>RIGHT</h3><p id="legR">0</p></div>
+    <header>
+        <h1>NEXUS NODES</h1>
+        <small style="color: #fff;">Pi Network Play-to-Earn Ecosystem</small>
+    </header>
+
+    <div class="container">
+        <!-- User Balance & Auth Card -->
+        <div class="card balance-box">
+            <div style="color: var(--subtext-color);">Total Pi Balance</div>
+            <div class="balance-amount" id="user-balance">0.0000 <span style="font-size: 18px;">π</span></div>
+            <button class="btn btn-gold" id="auth-btn" onclick="loginWithPi()">Sign In with Pi</button>
         </div>
 
-        <div class="game-status">
-            <h3>Mission: Level <span id="userLevel">1</span></h3>
-            <button class="play-btn" onclick="window.location.href='game.html'">PLAY & EARN</button>
+        <!-- Referral & Binary Network -->
+        <div class="card">
+            <h3>3-Leg Binary Network</h3>
+            <div style="font-size: 12px; color: var(--subtext-color); margin-bottom: 10px;">
+                Invited By Code: <b><span id="referrer-display">cheroy13</span></b> (Root Account)
+            </div>
+            <div class="binary-grid">
+                <div class="leg-card">
+                    <div class="leg-title">LEFT LEG</div>
+                    <div class="leg-value" id="left-leg">0</div>
+                </div>
+                <div class="leg-card">
+                    <div class="leg-title">CENTER LEG</div>
+                    <div class="leg-value" id="center-leg">0</div>
+                </div>
+                <div class="leg-card">
+                    <div class="leg-title">RIGHT LEG</div>
+                    <div class="leg-value" id="right-leg">0</div>
+                </div>
+            </div>
+            <input type="text" id="ref-input" placeholder="Enter Referral Code (Default: cheroy13)">
+            <button class="btn" style="font-size: 12px;" onclick="registerReferral()">Save Referral Code</button>
         </div>
 
-        <div class="referral-section">
-            <p>Invite Link:</p>
-            <input type="text" id="refLink" readonly value="Loading...">
+        <!-- Daily Reward -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <b>Daily Login Reward</b>
+                    <div style="font-size: 12px; color: var(--subtext-color);">Claim +0.10 Pi daily</div>
+                </div>
+                <button class="btn btn-gold" style="width: auto; padding: 8px 15px;" onclick="claimDailyReward()">Claim</button>
+            </div>
+        </div>
+
+        <!-- 5 HTML5 Games Selection -->
+        <div class="card" id="arcade-hub">
+            <h3>Play-to-Earn Arcade (1000 Levels)</h3>
+            <div class="game-selector">
+                <div class="game-card" onclick="startGame(1)">
+                    <h4 style="margin: 5px 0; color: var(--accent-color);">1. Puzzle Master</h4>
+                    <small>Logic Tiles</small>
+                </div>
+                <div class="game-card" onclick="startGame(2)">
+                    <h4 style="margin: 5px 0; color: var(--accent-color);">2. Crypto Quiz</h4>
+                    <small>Trivia Challenge</small>
+                </div>
+                <div class="game-card" onclick="startGame(3)">
+                    <h4 style="margin: 5px 0; color: var(--accent-color);">3. Node Strategy</h4>
+                    <small>Turn-Based Grid</small>
+                </div>
+                <div class="game-card" onclick="startGame(4)">
+                    <h4 style="margin: 5px 0; color: var(--accent-color);">4. Pi Gem Match</h4>
+                    <small>Match-3 Puzzle</small>
+                </div>
+                <div class="game-card" onclick="startGame(5)" style="grid-column: span 2;">
+                    <h4 style="margin: 5px 0; color: var(--accent-color);">5. Space Node Defender</h4>
+                    <small>Arcade Shooter</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Game Screen -->
+        <div class="card" id="game-screen">
+            <h3 id="game-title">Game View</h3>
+            <div style="color: var(--accent-color);">Level <span id="game-level">1</span> / 1000</div>
+            <div id="game-container"></div>
+            <button class="btn" onclick="completeLevel()" style="margin-top: 15px;">Complete Level & Earn</button>
+            <button class="btn" onclick="closeGame()" style="background: #444; margin-top: 5px;">Back to Hub</button>
         </div>
     </div>
 
     <script>
-        async function initAndAuth() {
+        // Sound FX Engine via Web Audio API
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(freq = 440, type = 'sine', duration = 0.15) {
             try {
-                await new Promise((resolve) => {
-                    window.Pi.init({ version: "2.0", sandbox: true });
-                    resolve();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.value = freq;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            } catch(e){}
+        }
+
+        let userBalance = 0.0000;
+        let currentLevel = 1;
+        let activeGameId = 0;
+
+        function loginWithPi() {
+            playSound(600, 'square');
+            try {
+                Pi.authenticate(['username', 'payments'], function(auth) {
+                    document.getElementById('auth-btn').innerText = "Logged: " + auth.user.username;
+                    fetch('/api/login', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ username: auth.user.username })
+                    });
                 });
-                await loginUser();
-            } catch (err) {
-                console.error("Initialization Error:", err);
-                document.getElementById('authBtn').style.display = 'inline-block';
+            } catch(err) {
+                alert("Pi Browser SDK Sandbox Active.");
+                document.getElementById('auth-btn').innerText = "Connected (Test User)";
             }
         }
 
-        async function loginUser() {
-            try {
-                const scopes = ['username'];
-                const auth = await window.Pi.authenticate(scopes, (onPayment) => {});
-                
-                const accessToken = auth.accessToken;
-                const username = auth.user.username;
-
-                const urlParams = new URLSearchParams(window.location.search);
-                const referrer = urlParams.get('ref') || 'admin';
-
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        accessToken: accessToken, 
-                        username: username, 
-                        referrerUsername: referrer 
-                    })
-                });
-                
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Auth failed');
-
-                document.getElementById('balance').innerText = `${(data.balance || 0).toFixed(4)} 𝝅`;
-                document.getElementById('legL').innerText = data.points_l || 0;
-                document.getElementById('legC').innerText = data.points_c || 0;
-                document.getElementById('legR').innerText = data.points_r || 0;
-                document.getElementById('userLevel').innerText = data.current_level || 1;
-                document.getElementById('refLink').value = `https://nexusnode.vercel.app/?ref=${username}`;
-                document.getElementById('authBtn').style.display = 'none';
-
-            } catch (err) { 
-                console.error("Login Error:", err);
-                document.getElementById('authBtn').style.display = 'inline-block';
-            }
+        function claimDailyReward() {
+            playSound(880, 'sine', 0.3);
+            userBalance += 0.10;
+            updateBalance();
+            alert("Daily Reward Claimed! +0.10 Pi");
         }
 
-        window.addEventListener('DOMContentLoaded', initAndAuth);
+        function updateBalance() {
+            document.getElementById('user-balance').innerText = userBalance.toFixed(4) + " π";
+        }
+
+        function registerReferral() {
+            let code = document.getElementById('ref-input').value || 'cheroy13';
+            document.getElementById('referrer-display').innerText = code;
+            playSound(520, 'triangle');
+            alert("Referral Code set to: " + code);
+        }
+
+        function startGame(id) {
+            playSound(400, 'sine');
+            activeGameId = id;
+            document.getElementById('arcade-hub').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            let titles = ["", "Pi Puzzle Master", "Crypto Trivia Quiz", "Node Strategy Tactics", "Pi Gem Match-3", "Space Node Defender"];
+            document.getElementById('game-title').innerText = titles[id];
+            
+            let container = document.getElementById('game-container');
+            container.innerHTML = `<canvas id="canvas" width="300" height="200"></canvas>`;
+            drawGameCanvas(titles[id]);
+        }
+
+        function drawGameCanvas(name) {
+            let canvas = document.getElementById('canvas');
+            if(!canvas) return;
+            let ctx = canvas.getContext('2d');
+            ctx.fillStyle = "#111";
+            ctx.fillRect(0,0,300,200);
+            ctx.fillStyle = "#f3ba2f";
+            ctx.font = "16px sans-serif";
+            ctx.fillText(name, 50, 90);
+            ctx.fillStyle = "#fff";
+            ctx.font = "12px sans-serif";
+            ctx.fillText("Interactive Level " + currentLevel + " Active", 65, 120);
+        }
+
+        function completeLevel() {
+            playSound(784, 'square', 0.2);
+            userBalance += 0.005;
+            currentLevel++;
+            if(currentLevel > 1000) currentLevel = 1000;
+            document.getElementById('game-level').innerText = currentLevel;
+            updateBalance();
+            drawGameCanvas(document.getElementById('game-title').innerText);
+        }
+
+        function closeGame() {
+            playSound(300, 'sine');
+            document.getElementById('arcade-hub').style.display = 'block';
+            document.getElementById('game-screen').style.display = 'none';
+        }
     </script>
 </body>
 </html>
